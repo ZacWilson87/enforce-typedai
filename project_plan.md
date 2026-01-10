@@ -180,18 +180,80 @@ type StreamHandler interface {
 
 ---
 
-### **Phase 4: Validators and Builders (Week 5)**
+### **Phase 4: Validators, Builders, and Self-Healing (Week 5-6)**
+
+This phase adds validation, builder patterns, and deterministic self-healing/repair logic for handling invalid AI outputs that fail schema validation. See [SELF_HEALING.md](./SELF_HEALING.md) for detailed repair requirements.
 
 **Tasks:**
 
-#### 4.1: Validation Package (`pkg/validators/`)
+#### 4.1: Core Validation Package (Week 5, Days 1-2)
 - `ValidateMessage()` - ensure message has required fields
 - `ValidateRole()` - check role is valid
 - `ValidateFunctionDefinition()` - validate JSON schema
 - `ValidateChatRequest()` - comprehensive request validation
 - Validation error types with detailed messages
+- Create `pkg/validators/common.go` with shared validation utilities
 
-#### 4.2: Builder Pattern (`pkg/builders/`)
+#### 4.2: Self-Healing Types and Configuration (Week 5, Days 3-4)
+Create `pkg/types/repair.go` with:
+- `RepairConfig` - configuration for repair behavior (enabled, max attempts)
+- `RepairAttempt` - tracks individual repair attempts with timestamps
+- `RepairResult` - encapsulates repair outcomes (repaired flag, attempt count, attempts history)
+
+Update `pkg/types/error.go` with:
+- `RepairErrorType` constants (RepairDisabled, RepairExhausted, RepairInvalidOutput)
+- `RepairError` type with detailed failure information
+- Helper functions: `IsRepairDisabledError()`, `IsRepairExhaustedError()`
+
+Update `pkg/types/chat.go` to integrate repair:
+- Add `RepairConfig` field to `ChatRequest`
+- Add `RepairResult` field to `ChatResponse`
+- Add helper methods: `WithRepair()`, `WasRepaired()`, `GetRepairAttempts()`
+
+#### 4.3: Repair Validators (Week 5, Day 5)
+Create `pkg/validators/repair.go`:
+- `ValidateRepairConfig()` - validates repair configuration (max attempts ≤ 3)
+- `ValidateRepairResult()` - validates repair result consistency
+
+Create `pkg/validators/schema.go`:
+- `ValidateSchemaCompliance()` - structural validation that triggers repair
+  - Checks required fields, correct types, array/object structure
+  - Does NOT validate semantics or business logic
+
+Update `pkg/validators/chat.go`:
+- `ValidateChatRequestWithRepair()` - validates request including repair config
+- `ValidateChatResponseWithRepair()` - validates response including repair results
+
+#### 4.4: Repair Orchestration Package (Week 6, Days 1-3)
+Create `pkg/repair/` package:
+
+`pkg/repair/orchestrator.go`:
+- `Orchestrator` type for coordinating repair attempts
+- `RepairContext` for passing repair state between attempts
+- `AttemptRepair()` method with bounded retry loop (deterministic, no randomness)
+- Enforces max attempts limit (default 1, max 3)
+- Logs and tracks all repair attempts
+- Returns explicit typed errors on failure
+
+`pkg/repair/prompt.go`:
+- `PromptBuilder` for constructing deterministic repair prompts
+- Prompts include: validation error, original schema, invalid output
+- Instructs model to fix ONLY structural issues (no semantic changes, no new fields)
+
+`pkg/repair/logger.go`:
+- `RepairLogger` interface for logging repair attempts
+- Console logger implementation
+- Structured logger implementation (JSON format)
+
+**Repair Design Principles** (per SELF_HEALING.md):
+- **Deterministic**: No randomness, adaptive retries, or hidden state
+- **Bounded**: Hard limit on repair attempts (configurable, max 3)
+- **Explicit**: All attempts logged, counted, and visible in result
+- **Structural only**: Repairs type/structure issues, NOT semantics
+- **Opt-in**: Repair must be explicitly enabled in request config
+
+#### 4.5: Builder Pattern (Week 6, Day 4)
+`pkg/builders/message.go`:
 - `MessageBuilder` with fluent API:
   ```go
   msg := NewMessageBuilder().
@@ -199,23 +261,52 @@ type StreamHandler interface {
       TextContent("Hello").
       Build()
   ```
-- `ChatRequestBuilder` for complex requests
-- `FunctionDefinitionBuilder` for type-safe function schemas
-- Builder validation before `Build()`
 
-#### 4.3: Functional Options Pattern
-- Optional parameters for requests using functional options:
-  ```go
-  WithTemperature(float64)
-  WithMaxTokens(int)
-  WithStreaming(bool)
-  ```
+`pkg/builders/chat.go`:
+- `ChatRequestBuilder` for complex requests
+- `WithRepair(maxAttempts int)` - enables repair
+- `DisableRepair()` - explicitly disables repair
+- `WithRepairConfig(config *RepairConfig)` - custom repair configuration
+- Builder validation before `Build()` includes repair config validation
+
+`pkg/builders/function.go`:
+- `FunctionDefinitionBuilder` for type-safe function schemas
+- Schema builder with validation
+
+#### 4.6: Functional Options Pattern
+Optional parameters for requests using functional options:
+```go
+WithTemperature(float64)
+WithMaxTokens(int)
+WithStreaming(bool)
+WithRepair(maxAttempts int)
+```
+
+#### 4.7: Testing and Documentation (Week 6, Day 5)
+- Comprehensive unit tests for:
+  - All validation functions
+  - Repair types and configuration
+  - Repair orchestrator (with mocked AI calls)
+  - Prompt builder (deterministic output verification)
+  - Builder patterns
+- Integration tests demonstrating:
+  - Successful repair after validation failure
+  - Repair exhaustion after max attempts
+  - Disabled repair handling
+- Documentation:
+  - Repair usage guide with examples
+  - Error handling patterns for repair failures
+  - Logging best practices
+  - Builder pattern examples
 
 **Deliverables:**
 - Comprehensive validation logic
-- Fluent builder APIs
-- Unit tests for all validators and builders
+- Complete self-healing/repair system with bounded retry logic
+- Fluent builder APIs with repair integration
+- Unit tests for all validators, builders, and repair logic (>90% coverage)
+- Integration tests showing repair flows
 - Documentation with examples
+- SELF_HEALING.md compliance verification
 
 ---
 

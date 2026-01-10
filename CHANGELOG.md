@@ -37,6 +37,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Total: 2,118 lines of production code
 - All code compiles and passes go vet
 
+### Documentation Updates
+- Updated `project_plan.md` Phase 4 to include self-healing/repair logic
+  - Added repair types, configuration, and orchestration details
+  - Defined deterministic repair flow with bounded retry logic
+  - Integrated SELF_HEALING.md requirements into implementation plan
+- Updated `README.md` to feature self-healing capability
+  - Added repair logic to supported features list
+  - Documented `pkg/repair` package architecture
+  - Added deterministic repair design principle
+- Integrated SELF_HEALING.md specifications into project documentation
+
 ## [0.1.0] - TBD
 
 ### Planned Features

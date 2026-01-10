@@ -32,6 +32,7 @@ This library is under active development. APIs may change before v1.0.0 release.
 - ✅ Comprehensive error handling
 - ✅ Request validation and builders
 - ✅ Provider-specific converters
+- 🔄 **Self-healing/repair logic** for invalid outputs (Phase 4)
 
 ## Installation
 
@@ -91,6 +92,15 @@ Fluent builder APIs for constructing complex types.
 
 ### `pkg/converters`
 Converters for different AI provider formats.
+
+### `pkg/repair` (Phase 4)
+Deterministic self-healing logic for handling invalid AI outputs:
+- Bounded repair attempts (configurable, max 3)
+- Schema validation and structural repair
+- Explicit error handling and logging
+- Opt-in configuration with full transparency
+
+See [SELF_HEALING.md](./SELF_HEALING.md) for detailed repair specifications.
 
 ## Examples
 
@@ -159,6 +169,7 @@ make coverage
 4. **Idiomatic Go**: Follow established Go conventions and best practices
 5. **Minimal Dependencies**: Keep the dependency footprint small
 6. **Comprehensive Testing**: High test coverage with robust test suites
+7. **Deterministic Repair**: Self-healing logic is bounded, explicit, and transparent (no randomness or adaptive behavior)
 
 ## Versioning
 
