@@ -1,0 +1,93 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+coverage.txt
+*.coverprofile
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Dependency directories
+vendor/
+
+# Build artifacts
+bin/
+dist/
+build/
+*.o
+*.a
+
+# Debug
+__debug_bin
+debug
+
+# Environment variables
+.env
+.env.*
+.envrc
+!.env.example
+
+# API keys and credentials
+*.key
+*.pem
+credentials.json
+secrets.yaml
+secrets.yml
+
+# IDE - JetBrains
+.idea/
+*.iml
+
+# IDE - VSCode
+.vscode/
+*.code-workspace
+
+# IDE - Vim
+*.swp
+*.swo
+*.swn
+*~
+
+# IDE - Emacs
+\#*\#
+.\#*
+
+# IDE - Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# OS - macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# OS - Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+
+# OS - Linux
+.directory
+.Trash-*
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+*.orig
+
+# Air - Live reload for Go
+tmp/
